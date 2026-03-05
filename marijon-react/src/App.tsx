@@ -163,55 +163,6 @@ function DecorativeTile({ label, tone = "light" }: { label: string; tone?: "ligh
   );
 }
 
-function ComplianceDeadlinesPanel() {
-  const rows = [
-    { cycle: "Monthly", item: "Bookkeeping Close", target: "Day 1-5" },
-    { cycle: "VAT Cycle", item: "VAT Reconciliation", target: "Before SARS cut-off" },
-    { cycle: "Payroll", item: "PAYE / UIF Checks", target: "Before payroll run" },
-    { cycle: "Annual", item: "Financial Statements", target: "Year-end reporting window" },
-  ];
-
-  return (
-    <article className="info-card" aria-label="Compliance schedule matrix">
-      <h3>Compliance Schedule</h3>
-      <p>Simple visibility on recurring obligations and reporting windows.</p>
-      <div className="deadline-list" role="list">
-        {rows.map((row) => (
-          <div key={row.item} className="deadline-row" role="listitem">
-            <span>{row.cycle}</span>
-            <span>{row.item}</span>
-            <span>{row.target}</span>
-          </div>
-        ))}
-      </div>
-    </article>
-  );
-}
-
-function ServiceWorkflowPanel() {
-  const steps = [
-    { title: "Initial Review", body: "Understand your current structure and urgent compliance needs." },
-    { title: "Setup and Align", body: "Confirm systems, filing dates, payroll flow, and reporting format." },
-    { title: "Monthly Execution", body: "Run bookkeeping, tax, and payroll cycles with clear checkpoints." },
-    { title: "Quarterly / Annual", body: "Consolidate reports and ensure year-end readiness." },
-  ];
-
-  return (
-    <article className="info-card" aria-label="Client onboarding and service workflow">
-      <h3>Service Workflow</h3>
-      <p>How client work is structured for consistency and predictable delivery.</p>
-      <ol className="workflow-list">
-        {steps.map((step) => (
-          <li key={step.title}>
-            <h4>{step.title}</h4>
-            <p>{step.body}</p>
-          </li>
-        ))}
-      </ol>
-    </article>
-  );
-}
-
 function ServicesSpotlight() {
   return (
     <section className="services-spotlight" aria-label="Service trust highlights">
@@ -405,11 +356,6 @@ function App() {
           </div>
 
           <ServicesSpotlight />
-
-          <div className="info-grid">
-            <ComplianceDeadlinesPanel />
-            <ServiceWorkflowPanel />
-          </div>
 
           <div className="service-list">
             {services.map((service, index) => (
