@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
 
 type Service = {
   tag: string;
@@ -60,6 +61,31 @@ const insights = [
   "VAT Mistakes That Trigger Penalties",
   "Payroll Compliance Checklist for Employers",
 ];
+
+const compliancePulse = [
+  { month: "Jan", value: 42, deadline: false },
+  { month: "Feb", value: 56, deadline: true },
+  { month: "Mar", value: 48, deadline: false },
+  { month: "Apr", value: 62, deadline: true },
+  { month: "May", value: 46, deadline: false },
+  { month: "Jun", value: 54, deadline: false },
+  { month: "Jul", value: 66, deadline: true },
+  { month: "Aug", value: 58, deadline: false },
+  { month: "Sep", value: 52, deadline: false },
+  { month: "Oct", value: 68, deadline: true },
+  { month: "Nov", value: 50, deadline: false },
+  { month: "Dec", value: 60, deadline: true },
+];
+
+const serviceMix = [
+  { label: "Bookkeeping", value: 32 },
+  { label: "Tax", value: 24 },
+  { label: "VAT", value: 18 },
+  { label: "Payroll", value: 16 },
+  { label: "Reporting", value: 10 },
+];
+
+const mixColors = ["#2f4f75", "#3b678f", "#4f7da4", "#73a0b8", "#d4644f"];
 
 function ServiceTagIcon({ tag }: { tag: string }) {
   const iconByTag: Record<string, JSX.Element> = {
@@ -149,65 +175,210 @@ function ServiceItemIcon({ index }: { index: number }) {
   return <span className="icon-item">{icons[index % icons.length]}</span>;
 }
 
-function DecorativeTile({ label, tone = "light" }: { label: string; tone?: "light" | "warm" | "deep" }) {
+function ComplianceLineChart() {
+  const coords = compliancePulse.map((item, idx) => ({
+    x: 26 + idx * 24,
+    y: 122 - item.value,
+    month: item.month,
+  }));
+
+  const linePoints = coords.map((point) => `${point.x},${point.y}`).join(" ");
+  const areaPoints = `${linePoints} ${coords[coords.length - 1].x},122 ${coords[0].x},122`;
+
   return (
-    <div className={`tile tile-${tone}`} role="img" aria-label={label}>
-      <svg viewBox="0 0 240 140" aria-hidden="true">
-        <rect x="0" y="0" width="240" height="140" rx="16" />
-        <circle cx="42" cy="36" r="18" />
-        <path d="M24 98c22-24 46-29 72-14 14 8 28 8 42 0 24-14 50-10 78 14" />
-        <path d="M16 120h210" />
-      </svg>
-      <span>{label}</span>
-    </div>
+    <svg
+      className="mini-chart line-chart"
+      viewBox="0 0 320 170"
+      role="img"
+      aria-label="Monthly compliance filing momentum trend"
+    >
+      <defs>
+        <linearGradient id="lineArea" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="rgba(212,100,79,0.28)" />
+          <stop offset="100%" stopColor="rgba(212,100,79,0.02)" />
+        </linearGradient>
+      </defs>
+
+      <rect x="1" y="1" width="318" height="168" rx="16" className="chart-shell-bg" />
+      <line x1="18" y1="122" x2="300" y2="122" className="chart-axis" />
+
+      {Array.from({ length: 4 }).map((_, idx) => (
+        <line key={idx} x1="18" y1={42 + idx * 20} x2="300" y2={42 + idx * 20} className="chart-grid" />
+      ))}
+
+      <polygon className="line-area" points={areaPoints} />
+      <polyline className="trend-line" points={linePoints} />
+
+      {coords.map((point, idx) => (
+        <g key={point.month}>
+          <circle className="trend-point" style={{ "--point-index": idx } as CSSProperties} cx={point.x} cy={point.y} r="3.7" />
+          {idx % 2 === 0 ? (
+            <text x={point.x} y="146" textAnchor="middle" className="chart-label">
+              {point.month}
+            </text>
+          ) : null}
+        </g>
+      ))}
+    </svg>
   );
 }
 
-function ServicesSpotlight() {
+function ComplianceBarsChart() {
   return (
-    <section className="services-spotlight" aria-label="Service trust highlights">
-      <div className="spotlight-copy">
-        <p className="eyebrow">Trusted Delivery</p>
-        <h3>Why businesses choose Marijon Accounting</h3>
-        <p>
-          CA(SA)-led oversight, practical turnaround, and structured compliance support across
-          bookkeeping, tax, VAT, payroll, and reporting.
-        </p>
-        <div className="spotlight-metrics" role="list" aria-label="Trust metrics">
-          <div role="listitem">
-            <strong>500+</strong>
-            <span>Entities supported</span>
-          </div>
-          <div role="listitem">
-            <strong>20+</strong>
-            <span>Years in practice</span>
-          </div>
-          <div role="listitem">
-            <strong>2</strong>
-            <span>Regional hubs</span>
-          </div>
-        </div>
+    <svg
+      className="mini-chart compliance-chart"
+      viewBox="0 0 320 170"
+      role="img"
+      aria-label="Compliance intensity by month with highlighted tax months"
+    >
+      <rect x="1" y="1" width="318" height="168" rx="16" className="chart-shell-bg" />
+      <line x1="18" y1="122" x2="300" y2="122" className="chart-axis" />
+
+      {compliancePulse.map((item, idx) => {
+        const x = 15 + idx * 24;
+        const barHeight = item.value;
+        const y = 122 - barHeight;
+        return (
+          <g key={item.month}>
+            <rect
+              className={`pulse-bar ${item.deadline ? "is-deadline" : ""}`}
+              style={{ "--bar-index": idx } as CSSProperties}
+              x={x}
+              y={y}
+              width="14"
+              height={barHeight}
+              rx="5"
+            />
+            <text x={x + 7} y="146" textAnchor="middle" className="chart-label">
+              {item.month}
+            </text>
+          </g>
+        );
+      })}
+    </svg>
+  );
+}
+
+function ServiceMixDonutChart() {
+  const radius = 42;
+  const circumference = 2 * Math.PI * radius;
+  let cumulativeLength = 0;
+
+  return (
+    <svg
+      className="mini-chart donut-chart"
+      viewBox="0 0 320 170"
+      role="img"
+      aria-label="Typical service mix by category in donut chart"
+    >
+      <rect x="1" y="1" width="318" height="168" rx="16" className="chart-shell-bg" />
+
+      <g transform="translate(20 0)">
+        <circle cx="74" cy="86" r={radius} className="donut-track" />
+        {serviceMix.map((item, idx) => {
+          const segmentLength = (item.value / 100) * circumference;
+          const segmentOffset = -cumulativeLength;
+          cumulativeLength += segmentLength;
+
+          return (
+            <circle
+              key={item.label}
+              cx="74"
+              cy="86"
+              r={radius}
+              className="donut-segment"
+              style={
+                {
+                  stroke: mixColors[idx % mixColors.length],
+                  strokeDasharray: `${segmentLength} ${circumference}`,
+                  strokeDashoffset: segmentOffset,
+                  "--segment-index": idx,
+                } as CSSProperties
+              }
+            />
+          );
+        })}
+        <text x="74" y="82" textAnchor="middle" className="donut-center-main">
+          Service
+        </text>
+        <text x="74" y="98" textAnchor="middle" className="donut-center-sub">
+          Mix
+        </text>
+      </g>
+
+      <g transform="translate(145 36)" className="donut-legend" aria-hidden="true">
+        {serviceMix.map((item, idx) => (
+          <g key={item.label} transform={`translate(0 ${idx * 23})`}>
+            <rect x="0" y="-8" width="10" height="10" rx="2" fill={mixColors[idx % mixColors.length]} />
+            <text x="16" y="0" className="donut-legend-label">
+              {item.label}
+            </text>
+            <text x="128" y="0" textAnchor="end" className="donut-legend-value">
+              {item.value}%
+            </text>
+          </g>
+        ))}
+      </g>
+    </svg>
+  );
+}
+
+function DecorativeTile({ label, tone = "light" }: { label: string; tone?: "light" | "warm" | "deep" }) {
+  return (
+    <figure className={`tile tile-${tone}`} role="img" aria-label={label}>
+      <svg viewBox="0 0 260 150" aria-hidden="true">
+        <rect x="0" y="0" width="260" height="150" rx="18" />
+        <path d="M20 116h220" />
+        <path d="M24 102c24-28 46-35 68-24 20 10 37 11 52 2 24-14 51-10 92 22" />
+        <path d="M30 82l24-16 22 10 36-28 24 11 34-22 26 18" />
+        <circle cx="54" cy="54" r="10" />
+        <circle cx="186" cy="44" r="8" />
+      </svg>
+      <figcaption>{label}</figcaption>
+    </figure>
+  );
+}
+
+function ServicesSignalBoard() {
+  return (
+    <aside className="service-signal reveal reveal-left" aria-label="Services spotlight and performance visuals">
+      <p className="eyebrow">Service Signal</p>
+      <h3>Compliance confidence, backed by a repeatable process.</h3>
+      <p>
+        CA(SA)-led oversight, practical turnaround, and structured compliance support across
+        bookkeeping, tax, VAT, payroll, and reporting.
+      </p>
+
+      <div className="signal-stats" role="list" aria-label="Service trust metrics">
+        <article role="listitem" className="signal-card">
+          <strong>500+</strong>
+          <span>Entities supported</span>
+        </article>
+        <article role="listitem" className="signal-card">
+          <strong>20+</strong>
+          <span>Years in practice</span>
+        </article>
+        <article role="listitem" className="signal-card signal-card-wide">
+          <strong>2 Hubs</strong>
+          <span>Vereeniging and Alberton delivery footprint</span>
+        </article>
       </div>
 
-      <div className="cert-card" role="img" aria-label="Certified professional support visual">
-        <svg viewBox="0 0 180 180" aria-hidden="true">
-          <defs>
-            <linearGradient id="certGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stopColor="#f06a58" />
-              <stop offset="100%" stopColor="#d74635" />
-            </linearGradient>
-          </defs>
-          <circle cx="90" cy="90" r="56" fill="none" stroke="url(#certGrad)" strokeWidth="10" />
-          <circle cx="90" cy="90" r="38" fill="none" stroke="#f5b8af" strokeWidth="4" />
-          <path d="M78 91l8 8 16-16" fill="none" stroke="#1d2c43" strokeWidth="6" strokeLinecap="round" />
-          <path d="M62 136l-8 24 23-8m50-16l8 24-23-8" fill="none" stroke="#f06a58" strokeWidth="6" />
-        </svg>
-        <div className="cert-label">
-          <span>Certified-Standard</span>
-          <strong>Professional Accounting Support</strong>
-        </div>
+      <div className="chart-stack">
+        <figure className="chart-panel chart-panel-wide">
+          <figcaption>Filing Momentum</figcaption>
+          <ComplianceLineChart />
+        </figure>
+        <figure className="chart-panel">
+          <figcaption>Typical Service Mix</figcaption>
+          <ServiceMixDonutChart />
+        </figure>
+        <figure className="chart-panel">
+          <figcaption>Compliance Calendar Intensity</figcaption>
+          <ComplianceBarsChart />
+        </figure>
       </div>
-    </section>
+    </aside>
   );
 }
 
@@ -218,8 +389,12 @@ function App() {
     const elements = Array.from(document.querySelectorAll<HTMLElement>(".reveal"));
     if (!elements.length) return;
 
+    elements.forEach((element, index) => {
+      element.style.setProperty("--reveal-delay", `${Math.min(index * 85, 510)}ms`);
+    });
+
     if (!("IntersectionObserver" in window)) {
-      elements.forEach((el) => el.classList.add("is-visible"));
+      elements.forEach((element) => element.classList.add("is-visible"));
       return;
     }
 
@@ -232,10 +407,11 @@ function App() {
           }
         });
       },
-      { threshold: 0.2, rootMargin: "0px 0px -40px 0px" },
+      { threshold: 0.18, rootMargin: "0px 0px -34px 0px" },
     );
 
-    elements.forEach((el) => observer.observe(el));
+    elements.forEach((element) => observer.observe(element));
+
     return () => observer.disconnect();
   }, []);
 
@@ -255,7 +431,7 @@ function App() {
 
   return (
     <div className="site">
-      <header className="topbar">
+      <header className="topbar reveal reveal-down">
         <div className="brand-wrap">
           <a className="brand" href="#home">
             <span className="brand-mark">MA</span>
@@ -271,7 +447,7 @@ function App() {
           className="menu-toggle"
           aria-label="Toggle menu"
           aria-expanded={menuOpen}
-          onClick={() => setMenuOpen((v) => !v)}
+          onClick={() => setMenuOpen((open) => !open)}
           type="button"
         >
           <span />
@@ -302,7 +478,7 @@ function App() {
       </header>
 
       <main className="page">
-        <section id="home" className="hero reveal">
+        <section id="home" className="hero reveal reveal-up">
           <div className="hero-copy">
             <p className="eyebrow">Accounting and Tax Advisory</p>
             <h1>Financial clarity for businesses that need to move with confidence.</h1>
@@ -331,56 +507,80 @@ function App() {
             </div>
           </div>
 
-          <aside className="hero-aside">
-            <p className="eyebrow">Why Clients Stay</p>
-            <ul className="plain-list">
-              <li>CA(SA)-led expertise</li>
-              <li>One partner for accounting, tax, payroll, and compliance</li>
-              <li>Support in Vereeniging and Alberton</li>
-            </ul>
-            <div className="hero-tiles">
-              <DecorativeTile label="Advisory Session Graphic" tone="deep" />
-              <DecorativeTile label="Compliance Workflow Graphic" />
+          <aside className="hero-visual" aria-label="Professional accounting support illustration">
+            <div className="hero-visual-art">
+              <span className="hero-shape hero-shape-wash" aria-hidden />
+              <span className="hero-shape hero-shape-stripe" aria-hidden />
+              <span className="hero-shape hero-shape-ring" aria-hidden />
+              <span className="hero-shape hero-shape-dots" aria-hidden />
+              <img
+                className="hero-image"
+                src="/hero-accounting.jpg"
+                alt="Professional reviewing financial documents on a laptop"
+                loading="eager"
+              />
             </div>
-            <blockquote>
-              Professional support with practical turnaround. Their team keeps our deadlines and
-              compliance in order.
-            </blockquote>
+
+            <div className="hero-proof">
+              <p className="eyebrow">Why Businesses Choose Us</p>
+              <ul className="plain-list plain-list-tight">
+                <li>CA(SA)-led expertise</li>
+                <li>One partner for accounting, tax, payroll, and compliance</li>
+                <li>Support in Vereeniging and Alberton</li>
+              </ul>
+              <div className="hero-proof-stats" role="list" aria-label="Trust indicators">
+                <span role="listitem">
+                  <strong>500+</strong> entities
+                </span>
+                <span role="listitem">
+                  <strong>20+</strong> years
+                </span>
+              </div>
+              <a className="button button-outline hero-panel-cta" href="#services">
+                Explore Services
+              </a>
+            </div>
           </aside>
         </section>
 
-        <section id="services" className="section reveal">
+        <section id="services" className="section section-services reveal">
           <div className="section-intro">
             <p className="eyebrow">Services</p>
             <h2>End-to-end accounting and compliance support</h2>
           </div>
 
-          <ServicesSpotlight />
+          <div className="services-layout">
+            <ServicesSignalBoard />
 
-          <div className="service-list">
-            {services.map((service, index) => (
-              <article key={service.title} className="service-item">
-                <div className="service-head">
-                  <div className="service-badge">
-                    <ServiceTagIcon tag={service.tag} />
-                    <span>{service.tag}</span>
+            <div className="service-list">
+              {services.map((service, index) => (
+                <article
+                  key={service.title}
+                  className={`service-item reveal ${index % 2 === 0 ? "reveal-right" : "reveal-left"}`}
+                  style={{ "--service-index": index } as CSSProperties}
+                >
+                  <div className="service-head">
+                    <div className="service-badge">
+                      <ServiceTagIcon tag={service.tag} />
+                      <span>{service.tag}</span>
+                    </div>
+                    <h3>{service.title}</h3>
                   </div>
-                  <h3>{service.title}</h3>
-                </div>
 
-                <p>{service.body}</p>
+                  <p>{service.body}</p>
 
-                <div className="service-meta">
-                  <ServiceItemIcon index={index} />
-                  <span className="service-num">{String(index + 1).padStart(2, "0")}</span>
-                </div>
-              </article>
-            ))}
+                  <div className="service-meta">
+                    <ServiceItemIcon index={index} />
+                    <span className="service-num">{String(index + 1).padStart(2, "0")}</span>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
 
-        <section id="about" className="section section-split reveal">
-          <div className="about-story">
+        <section id="about" className="section section-about reveal reveal-up">
+          <div className="about-story reveal reveal-left">
             <p className="eyebrow">About</p>
             <h2>From two clients to a trusted accounting partner across Gauteng</h2>
             <p>
@@ -393,7 +593,7 @@ function App() {
               can stay compliant and make better financial decisions.
             </p>
           </div>
-          <div className="about-panel">
+          <div className="about-panel reveal reveal-right">
             <DecorativeTile label="Founder Profile Graphic" tone="warm" />
             <h3>What You Can Expect</h3>
             <ul className="plain-list">
@@ -405,15 +605,19 @@ function App() {
           </div>
         </section>
 
-        <section id="team" className="section reveal">
+        <section id="team" className="section section-team reveal">
           <div className="section-intro">
             <p className="eyebrow">Team</p>
             <h2>Experienced professionals behind every submission and report</h2>
           </div>
 
           <div className="team-grid">
-            {team.map((member) => (
-              <article key={member.name} className="team-card">
+            {team.map((member, index) => (
+              <article
+                key={member.name}
+                className="team-card reveal reveal-scale"
+                style={{ "--card-index": index } as CSSProperties}
+              >
                 <div className="team-avatar" aria-hidden>
                   {member.name
                     .split(" ")
@@ -428,15 +632,19 @@ function App() {
           </div>
         </section>
 
-        <section className="section section-subtle reveal">
+        <section className="section section-subtle section-insights reveal">
           <div className="section-intro">
             <p className="eyebrow">Insights</p>
             <h2>Useful updates for owners and finance teams</h2>
           </div>
 
           <div className="insight-grid">
-            {insights.map((post) => (
-              <article key={post} className="insight-card">
+            {insights.map((post, index) => (
+              <article
+                key={post}
+                className="insight-card reveal reveal-up"
+                style={{ "--insight-index": index } as CSSProperties}
+              >
                 <DecorativeTile label="Insight Visual" />
                 <h3>{post}</h3>
                 <p>Short, practical guidance focused on action and compliance deadlines.</p>
